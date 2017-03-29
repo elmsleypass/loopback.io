@@ -204,7 +204,7 @@ It calculates the specifics by checking the access request against each ACL rule
 At each level, the matching yields three points:
 
 * 3: exact match
-* 2: wildcard match ('*')
+* 2: wildcard match (`'*'`)
 * -1: no match
 
 Higher-level matches take precedence over lower-level matches. For example, the exact match at model level will overweight the wildcard match.
