@@ -207,7 +207,7 @@ At each level, the matching yields three points:
 * 2: wildcard match (`'*'`)
 * -1: no match
 
-Higher-level matches take precedence over lower-level matches. For example, the exact match at model level will overweight the wildcard match.
+Higher-level matches take precedence over lower-level matches. For example, the exact match at model level will override the wildcard match.
 
 For example, consider the following access request:
 
@@ -253,45 +253,41 @@ Assuming the following ACL rules are defined:
 ]
 ```
 
-The order of ACL rules will be #3, #2, #1\. As a result, the request will be rejected as the permission set by rule #3 is 'DENY' .
+The order of ACL rules will be #3, #2, #1. As a result, the request will be rejected since the permission set by rule #3 is 'DENY'.
 
 ## Authorization scopes
 
 {% include warning.html content="
-The current implementation of Authorization scopes is very low-level and may not suit all users. Please join the discussion in [issue #3339](https://github.com/strongloop/loopback/issues/3339) to help us build the best high-level API for this feature.
+The current implementation of authorization scopes is very low-level and may not suit all users. Please join the discussion in [issue #3339](https://github.com/strongloop/loopback/issues/3339) to help us build the best high-level API for this feature.
 " %}
 
 LoopBack's built-in authorization algorithm allows application to limit
-access to remote methods using the concept of scopes. The implementation
+access to remote methods using the concept of _authorization scopes_. The implementation
 is similar to [oAuth2 Access Token Scope](https://tools.ietf.org/html/rfc6749#section-3.3).
 
-Authorization scopes work in tandem with the current role/ACL-based
-authorization:
+Authorization scopes work together with role/ACL-based authorization as follows:
  1. The authorization algorithm checks whether the access token
-    was granted at least one of the scopes required by the accessed resource.
-    The request is denied as not authorized when this check fails.
+    was granted by at least one of the scopes required by the accessed resource.
+    If this check fails, then the request is denied as not authorized.
  2. Next, the ACL rules are checked to make sure the established principal
-    is allowed to access the protected resource. The request is denied
-    when this check fails.
- 3. Providing both scope and ACL checks passed, the request is authorized
+    is allowed to access the protected resource. If this check fails, then the request is denied.
+ 3. If both scope and ACL checks passed, the request is authorized
     and the remote method is executed.
 
-
-There are two steps needed to start using this feature:
+To use this feature, follow these steps:
 
  1. Define scopes required by remote methods
-
  2. Add API for creating scoped AccessTokens
 
 {% include note.html content="
-LoopBack provides a single built-in scope `DEFAULT` which is used whenever a method does not define any scopes or an access token does not contain any allowed scopes. This preserves backwards compatibility for existing applications.
+LoopBack provides the built-in scope `DEFAULT` that is used whenever a method does not define any scopes or an access token does not contain any allowed scopes. This preserves backwards compatibility for existing applications.
 " %}
 
 ### Define scopes required by remote methods
 
-The scopes are defined together with other remoting metadata via the new
-setting `accessScopes`. The user can invoke the remote method as long as their access token
-is granted at least one of the scopes listed in `accessScopes` array.
+The new model property `accessScopes` defines scopes as part of remoting metadata.
+A user can invoke the remote method if their access token
+is granted by at least one of the scopes listed in `accessScopes` array.
 
 Example configuration:
 
@@ -310,25 +306,24 @@ Example configuration:
 }
 ```
 
-All built-in methods (e.g. `PersistedModel.create`) are assigned the default
-`DEFAULT` scope. There is no straightforward way for customizing the scopes
-of built-in remote methods yet, please join the discussion in
+All built-in methods (for example, `PersistedModel.create`) have the default
+`DEFAULT` scope. There is no straightforward way to customize the scopes
+of built-in remote methods; please join the discussion in
 [issue #3339](https://github.com/strongloop/loopback/issues/3339)
 to help us find the best solution.
 
+### Create scoped access tokens
 
-### Create scoped Access Tokens
-
-The built-in `User.login` method creates access token with no scopes, i.e.
-scoped to the built-in `DEFAULT` scope. This allows users to invoke all
+The built-in `User.login` method creates an access token with no scopes, that is,
+with the built-in `DEFAULT` scope. This allows users to invoke all
 built-in methods and any custom methods added before the scoping feature was
 introduced.
 
-It's up to the application developers to decide how to generate access tokens
+It's up to the application developer to decide how to generate access tokens
 limited to a different set of scopes.
 
-The example below shows how to create a new remote method for issuing tokens
-for external applications that allow these apps only to read user's profile
+The example below shows how to create a new remote method to issue tokens
+for external applications that allow these apps to read only a user's profile
 data.
 
 {% include code-caption.html content="common/models/user.js" %}
@@ -343,19 +338,17 @@ module.exports = function(User) {
 };
 ```
 
-### Migration path
+### Migration 
 
-Applications upgrading from an older LoopBack 3.x version need to take the
-following steps:
+To upgrade an application from an earlier version of LoopBack 3.x, follow these steps:
 
- - As is the fequent case with semver-minor updates, database schemas must be
-   updated to accomodate newly added properties. Please refer to
-   [auto-update docs](https://loopback.io/doc/en/lb2/Creating-a-database-schema-from-models.html#auto-update)
-   for instructions.
+ - As common with semver-minor updates, update database schemas 
+   to accomodate any newly-added properties. For more information, see
+   [Creating a database schema from models (Auto-update)](Creating-a-database-schema-from-models.html#auto-update).
 
  - If the application was already using a custom `AccessToken.scopes`
-   property with a type different from an array, then the relevant code
-   must be updated to work with the new type "array of strings".
+   property with a type different from an array, then update the relevant code
+   to work with the type "array of strings".
 
 ## Debugging
 
