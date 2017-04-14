@@ -285,7 +285,7 @@ LoopBack provides the built-in scope `DEFAULT` that is used whenever a method do
 
 ### Define scopes required by remote methods
 
-The new model property `accessScopes` defines scopes as part of remoting metadata.
+The model property `accessScopes` defines scopes as part of remoting metadata.
 A user can invoke the remote method if their access token
 is granted by at least one of the scopes listed in `accessScopes` array.
 
@@ -300,7 +300,7 @@ Example configuration:
       "accepts": [],
       "returns": { "arg": "data", "type": "User", "root": true},
       "http": {"verb": "get", "path": "/profile"},
-      "accessScopes": ["read", "read:profile"],
+      "accessScopes": ["read", "read:profile"]
     }
   }
 }
